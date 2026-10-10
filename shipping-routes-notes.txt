@@ -1,0 +1,13 @@
+USER-FACING CAPTION
+Historical shipping corridors · source-network geometry, not live vessel traffic.
+
+METHOD
+Ten representative routes computed along Eurostat SeaRoute’s published 20 km maritime network, derived from the ORNL Global Shipping Lane Network (2000) with AIS-based European additions. Network GeoPackage timestamp: 2021-09-08. Paths use Dijkstra, snap approximate ports to existing nodes, and exclude Arctic links north of 60N; the Cape corridor excludes Suez. Resulting routes are models of network connectivity, not recorded individual voyages. Rendering width/glow is decorative and must not imply cargo volume. Suez and Hormuz routes are historical references, not claims of present-day availability.
+
+SOURCES
+https://github.com/eurostat/searoute
+Pinned network: https://raw.githubusercontent.com/eurostat/searoute/88a2e568a8e0144d1f5a81c3931a7bc2bcce6901/modules/core/src/main/resources/marnet/marnet_plus_20km.gpkg
+License EUPL-1.2, copied as shipping-network-LICENSE.txt. Retain source attribution and make derived GeoJSON available.
+
+DATA
+shipping-routes.json is a FeatureCollection, split at antimeridian; 10 corridors represented by 12 LineString features. Every feature has name, dataYear, sourceURL, method, approximate distance and node-snap distances.
