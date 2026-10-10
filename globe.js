@@ -19,7 +19,7 @@ function prepareEmblem(mark){const ratio=mark.image.naturalHeight/mark.image.nat
 function surfaceTriangle(texture,a,b,c){let polygon=[a,b,c],visible=[];for(let i=0;i<3;i++){const from=polygon[i],to=polygon[(i+1)%3];if(from.z>0)visible.push(from);if((from.z>0)!==(to.z>0)){const t=from.z/(from.z-to.z);visible.push({x:from.x+t*(to.x-from.x),y:from.y+t*(to.y-from.y)});}}if(visible.length<3)return;const du1=b.u-a.u,dv1=b.v-a.v,du2=c.u-a.u,dv2=c.v-a.v,det=du1*dv2-du2*dv1;const dx1=b.x-a.x,dy1=b.y-a.y,dx2=c.x-a.x,dy2=c.y-a.y;const A=(dx1*dv2-dx2*dv1)/det,B=(dy1*dv2-dy2*dv1)/det,C=(dx2*du1-dx1*du2)/det,D=(dy2*du1-dy1*du2)/det;ctx.save();ctx.beginPath();visible.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.clip();ctx.transform(A,B,C,D,a.x-A*a.u-C*a.v,a.y-B*a.u-D*a.v);const sx=Math.min(a.u,b.u,c.u),sy=Math.min(a.v,b.v,c.v),sw=Math.max(a.u,b.u,c.u)-sx,sh=Math.max(a.v,b.v,c.v)-sy;ctx.drawImage(texture,sx,sy,sw,sh,sx,sy,sw,sh);ctx.restore();}
 function drawSurfaceEmblems(){for(const mark of emblems){if(!mark.texture)continue;const country=mark.id==='158'?taiwanFeature:highlights.find(f=>f.id===mark.id)||allianceFeatures.find(f=>f.id===mark.id);if(!country&&mark.id!=='NATO')continue;const vertices=mark.vertices.map(v=>{const p=project(v.lon,v.lat);return {...v,x:p[0],y:p[1],z:p[2]};});if(vertices.every(v=>v.z<=0))continue;ctx.save();ctx.beginPath();ctx.arc(width/2,height/2,r,0,Math.PI*2);ctx.clip();ctx.globalAlpha=['840','156'].includes(mark.id)?.60:.32;ctx.shadowBlur=0;const stride=mark.cells+1;for(let y=0;y<mark.cells;y++)for(let x=0;x<mark.cells;x++){const a=vertices[y*stride+x],b=vertices[y*stride+x+1],c=vertices[(y+1)*stride+x],d=vertices[(y+1)*stride+x+1];surfaceTriangle(mark.texture,a,b,c);surfaceTriangle(mark.texture,b,d,c);}ctx.restore();}}
 
-const regions=[['CHARLOTTESVILLE, VIRGINIA','A starting point. A global perspective.','INTRODUCTION',-1.45],['WASHINGTON, D.C.','Learning through research and public service.','EXPERIENCE',-1.45],['A GLOBAL COMMUNITY','Education and service across borders.','VOLUNTEER',-.5],['THE INDO-PACIFIC','Industry. Resources. Technology.','POLARITY GROUP',1.95],['A WORLD BEYOND THE WORK','Language, sport, and community.','BEYOND THE WORK',.7]];
+const regions=[['A GLOBAL PERSPECTIVE','A starting point. A global perspective.','INTRODUCTION',-1.45],['PUBLIC SERVICE','Learning through research and public service.','EXPERIENCE',-1.45],['A GLOBAL COMMUNITY','Education and service across borders.','VOLUNTEER',-.5],['THE INDO-PACIFIC','Industry. Resources. Technology.','POLARITY GROUP',1.95],['A WORLD BEYOND THE WORK','Language, sport, and community.','BEYOND THE WORK',.7]];
 function resize(){const box=canvas.getBoundingClientRect();width=box.width;height=box.height;const dpr=Math.min(devicePixelRatio,2);canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);baseRadius=Math.max(0,(Math.min(width,height)-16)/2);r=baseRadius;revision++}new ResizeObserver(resize).observe(canvas);
 function project(lon,lat){const a=lon*Math.PI/180-angle,b=lat*Math.PI/180,y=Math.sin(b),z=Math.cos(b)*Math.cos(a);return [width/2+r*Math.cos(b)*Math.sin(a),height/2-r*(y*Math.cos(tilt)-z*Math.sin(tilt)),z*Math.cos(tilt)+y*Math.sin(tilt)]}
 function line(points,color,lineWidth=1){ctx.beginPath();let prev=false;for(const p of points){const q=project(p[0],p[1]);if(q[2]>0){if(prev)ctx.lineTo(q[0],q[1]);else ctx.moveTo(q[0],q[1]);prev=true}else prev=false}ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.stroke()}
@@ -53,28 +53,34 @@ function projectedGeometry(){
 }
 // A separate animation clock lets the routes flow while country details are open.
 let routeTime=0;
+let routeNetworkCache=null;
 function drawTradeRoutes(routes){
- const phase=routeTime*.00065,travel=routeTime*.028;
+ if(!routes.length)return;
+ if(routeNetworkCache?.routes!==routes){
+  const network=new Path2D();
+  for(const {path} of routes)network.addPath(path);
+  routeNetworkCache={routes,network};
+ }
+ const network=routeNetworkCache.network;
+ const phase=routeTime*.00032,travel=routeTime*.018;
  const color=(offset,alpha=1)=>{
   const mix=(Math.sin(phase+offset)+1)/2;
-  return `rgba(${Math.round(55+200*mix)},${Math.round(170-100*mix)},${Math.round(255-145*mix)},${alpha})`;
+  return `rgba(${Math.round(60+190*mix)},${Math.round(175-100*mix)},${Math.round(255-140*mix)},${alpha})`;
  };
- ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
- const glow=ctx.createLinearGradient(width/2-r,height/2-r*.4,width/2+r,height/2+r*.4);
+ ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowBlur=0;
+ const glow=ctx.createLinearGradient(width/2-r,height/2-r*.35,width/2+r,height/2+r*.35);
  for(let i=0;i<=4;i++)glow.addColorStop(i/4,color(i*Math.PI/2));
- const network=new Path2D();for(const {path} of routes)network.addPath(path);
- // Broad bloom under a crisp neon filament, batched for mobile rendering.
- ctx.strokeStyle=glow;ctx.globalAlpha=.12;ctx.lineWidth=7;ctx.stroke(network);
- ctx.globalAlpha=.25;ctx.lineWidth=3;ctx.stroke(network);
- ctx.globalAlpha=.72;ctx.lineWidth=.85;ctx.stroke(network);
- for(let i=0;i<routes.length;i++){
-  const {path}=routes[i],offset=i*.71,direction=i%2?1:-1;
-  // Two staggered streams move in opposing directions and exchange colors.
-  ctx.globalAlpha=.92;ctx.strokeStyle=color(offset);ctx.shadowColor=color(offset);
-  ctx.shadowBlur=9;ctx.lineWidth=1.7;ctx.setLineDash([10,90]);
-  ctx.lineDashOffset=direction*travel+i*17;ctx.stroke(path);
-  ctx.strokeStyle=color(offset+Math.PI);ctx.shadowColor=color(offset+Math.PI);
-  ctx.lineWidth=1.3;ctx.setLineDash([5,115]);ctx.lineDashOffset=-direction*travel+i*23;ctx.stroke(path);
+ // Seven batched strokes replace per-route shadow-blur passes.
+ // Translucent ribbons give a soft neon halo without GPU blur filters.
+ ctx.strokeStyle=glow;ctx.globalAlpha=.07;ctx.lineWidth=5;ctx.stroke(network);
+ ctx.globalAlpha=.18;ctx.lineWidth=2.5;ctx.stroke(network);
+ ctx.globalAlpha=.48;ctx.lineWidth=.7;ctx.stroke(network);
+ for(let direction=0;direction<2;direction++){
+  ctx.strokeStyle=color(direction*Math.PI);
+  ctx.setLineDash([36,184]);
+  ctx.lineDashOffset=(direction?1:-1)*travel+direction*110;
+  ctx.globalAlpha=.14;ctx.lineWidth=3.2;ctx.stroke(network);
+  ctx.globalAlpha=.82;ctx.lineWidth=1.15;ctx.stroke(network);
  }
  ctx.restore();
 }
@@ -94,26 +100,6 @@ occupationHitPaths=[];
 if(showOccupation){for(const {feature,path} of geometry.occupied){occupationHitPaths.push({feature,path});ctx.save();const ukraine=countryPaths.find(entry=>entry.feature.id==='804');if(ukraine)ctx.clip(ukraine.path);ctx.fillStyle=occupationPattern;ctx.fill(path);ctx.strokeStyle='#eeb9c8aa';ctx.lineWidth=.6;ctx.setLineDash([2,2]);ctx.stroke(path);ctx.restore();}}
 if(showRoutes)drawTradeRoutes(geometry.routes);
 drawSurfaceEmblems();
-const cityLabels=[
- {lon:-78.48,lat:38.03,label:'UNIVERSITY OF VIRGINIA',dx:9,dy:18},
- {lon:-77.04,lat:38.91,label:'WASHINGTON, D.C.',dx:9,dy:-8},
- {lon:116.4,lat:39.9,label:'BEIJING',dx:9,dy:-8},
- {lon:121.56,lat:25.03,label:'TAIPEI',dx:9,dy:13}
-];
-ctx.font='12px Aptos, Segoe UI, sans-serif';
-for(const city of cityLabels){
- const p=project(city.lon,city.lat);if(p[2]<=.12)continue;
- const textWidth=ctx.measureText(city.label).width;
- let tx=p[0]+city.dx,ty=p[1]+city.dy;
- if(tx+textWidth>width/2+baseRadius-8)tx=p[0]-textWidth-city.dx;
- if(tx<width/2-baseRadius+8)tx=p[0]+city.dx;
- ty=Math.max(14,Math.min(height-10,ty));
- const cityColor=city.label==='TAIPEI'?'#f5dc74':city.label==='BEIJING'?'#ec929a':'#86b8ee';
- ctx.fillStyle=cityColor;ctx.beginPath();ctx.arc(p[0],p[1],2.5,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle=cityColor+'bb';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p[0],p[1],8,0,Math.PI*2);ctx.stroke();
- ctx.strokeStyle='#9fa6b088';ctx.beginPath();ctx.moveTo(p[0]+(tx>p[0]?4:-4),p[1]+(ty>p[1]?4:-4));ctx.lineTo(tx+(tx>p[0]?-2:textWidth+2),ty-3);ctx.stroke();
- ctx.fillStyle='#ffffff';ctx.fillText(city.label,tx,ty);
-}
 for(const [lon,lat,label,dy] of [[144.79,13.44,'Guam',13],[145.75,15.20,'N. Marianas',-10],[-170.70,-14.30,'Am. Samoa',-7],[166.65,19.29,'Wake',-7],[-177.37,28.21,'Midway',-7],[-162.08,5.88,'Palmyra',-7]]){const p=project(lon,lat);if(p[2]>.08){ctx.beginPath();ctx.arc(p[0],p[1],2,0,Math.PI*2);ctx.fillStyle='#8cbaec';ctx.fill();}}
 ctx.restore();
 // Share the globe's exact center and radius so its outline cannot drift.
@@ -129,3 +115,4 @@ function releasePointer(e){if(e.pointerId!==activePointer)return;activePointer=n
 canvas.addEventListener('pointerup',releasePointer);canvas.addEventListener('pointercancel',releasePointer);canvas.addEventListener('lostpointercapture',releasePointer);
 canvas.addEventListener('keydown',e=>{if(['0','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();if(e.key==='0')resetView();if(e.key==='ArrowLeft')angle=target=angle-.08;if(e.key==='ArrowRight')angle=target=angle+.08;if(e.key==='ArrowUp')tilt=Math.min(1.15,tilt+.06);if(e.key==='ArrowDown')tilt=Math.max(-1.15,tilt-.06);});
 const sections=[...document.querySelectorAll('main section')],links=[...document.querySelectorAll('.atlas nav a')];const observer=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){sectionIndex=sections.indexOf(e.target);const data=regions[sectionIndex];document.querySelector('#chapter').textContent=String(sectionIndex+1).padStart(2,'0')+' / '+data[2];document.querySelector('#region').textContent=data[0];document.querySelector('#region-note').textContent=data[1];links.forEach((l,i)=>{l.classList.toggle('active',i===sectionIndex);if(i===sectionIndex)l.setAttribute('aria-current','location');else l.removeAttribute('aria-current')})}},{rootMargin:'-25% 0px -45% 0px'});sections.forEach(s=>observer.observe(s));resize();draw();
+
