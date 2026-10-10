@@ -62,7 +62,7 @@ function drawTradeRoutes(routes){
   routeNetworkCache={routes,network};
  }
  const network=routeNetworkCache.network;
- const phase=routeTime*.00032,travel=routeTime*.018;
+ const phase=routeTime*.00032;
  const color=(offset,alpha=1)=>{
   const mix=(Math.sin(phase+offset)+1)/2;
   return `rgba(${Math.round(60+190*mix)},${Math.round(175-100*mix)},${Math.round(255-140*mix)},${alpha})`;
@@ -70,18 +70,11 @@ function drawTradeRoutes(routes){
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowBlur=0;
  const glow=ctx.createLinearGradient(width/2-r,height/2-r*.35,width/2+r,height/2+r*.35);
  for(let i=0;i<=4;i++)glow.addColorStop(i/4,color(i*Math.PI/2));
- // Seven batched strokes replace per-route shadow-blur passes.
- // Translucent ribbons give a soft neon halo without GPU blur filters.
- ctx.strokeStyle=glow;ctx.globalAlpha=.07;ctx.lineWidth=5;ctx.stroke(network);
- ctx.globalAlpha=.18;ctx.lineWidth=2.5;ctx.stroke(network);
- ctx.globalAlpha=.48;ctx.lineWidth=.7;ctx.stroke(network);
- for(let direction=0;direction<2;direction++){
-  ctx.strokeStyle=color(direction*Math.PI);
-  ctx.setLineDash([36,184]);
-  ctx.lineDashOffset=(direction?1:-1)*travel+direction*110;
-  ctx.globalAlpha=.14;ctx.lineWidth=3.2;ctx.stroke(network);
-  ctx.globalAlpha=.82;ctx.lineWidth=1.15;ctx.stroke(network);
- }
+ // One shared moving gradient keeps the glow and filament in the same color.
+ ctx.strokeStyle=glow;
+ ctx.globalAlpha=.08;ctx.lineWidth=5;ctx.stroke(network);
+ ctx.globalAlpha=.20;ctx.lineWidth=2.6;ctx.stroke(network);
+ ctx.globalAlpha=.78;ctx.lineWidth=1;ctx.stroke(network);
  ctx.restore();
 }
 function draw(now=0){requestAnimationFrame(draw);if(document.hidden||!globeVisible){lastFrame=0;return;}const elapsed=now-lastFrame;if(lastFrame&&elapsed<(drag?15:32))return;const dt=lastFrame?Math.min(elapsed,100)/16.667:1;lastFrame=now;r=baseRadius;if(!paused&&!drag&&!hoverCountry&&!readingCard){angle+=.0009*dt;target=angle}if(!paused&&showRoutes)routeTime+=dt*16.667;const view=[angle,tilt,width,height,revision,showRoutes?routeTime:0].join('|');if(view===lastView)return;lastView=view;ctx.clearRect(0,0,width,height);const cx=width/2,cy=height/2;
