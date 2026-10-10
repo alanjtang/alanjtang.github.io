@@ -1,0 +1,2 @@
+Republic of China (Taiwan) flag SVG: https://flagcdn.com/tw.svg
+Displayed at 32 x 20 CSS pixels to match the existing country legend flags.

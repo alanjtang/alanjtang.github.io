@@ -1,0 +1,12 @@
+# Local tools and caches
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+node_modules/
+.vercel/
+.netlify/
+.wrangler/
+.env
+.env.*
+!.env.example

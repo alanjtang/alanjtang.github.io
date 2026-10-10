@@ -1,0 +1,4 @@
+Atlas profiles reviewed October 9–10, 2026. 74 detailed country/territory profiles; individual sources and review dates are embedded in relationships.json and shown on hover.
+Methodology and credits: /atlas-sources/
+Occupation: ISW / AEI Critical Threats Project; source layer edited September 29, 2026. Not a live frontline. Crimea remains Ukrainian territory.
+Shipping: Eurostat SeaRoute 20 km network, ORNL 2000 with AIS European additions, network file dated 2021-09-08. Modeled historical corridors, not live traffic. Full provenance: shipping-routes-notes.txt.
