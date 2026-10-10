@@ -3,7 +3,7 @@
  const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close country details');
  const title=document.createElement('h3'),category=document.createElement('small'),date=document.createElement('small'),occupied=document.createElement('p'),uh=document.createElement('h4'),us=document.createElement('p'),ch=document.createElement('h4'),china=document.createElement('p'),refs=document.createElement('div'),note=document.createElement('small');
  occupied.className='occupation-notice';occupied.hidden=true;uh.textContent='Toward the United States';ch.textContent='Toward China';note.textContent='Colors summarize security ties, not exclusive allegiance. Formal treaties, partnerships and current disputes are distinguished above.';
- const methodology=document.createElement('a');methodology.href='/atlas-sources/';methodology.textContent='Map coverage, dates & sources';methodology.className='map-source-link';
+ const methodology=document.createElement('a');methodology.href='./atlas-sources/';methodology.textContent='Map coverage, dates & sources';methodology.className='map-source-link';
  panel.append(close,category,title,date,occupied,uh,us,ch,china,refs,note,methodology);document.body.append(panel);
  const picker=document.createElement('select');picker.className='relationship-picker';picker.setAttribute('aria-label','Explore country relationships');picker.add(new Option('Explore countries',''));atlas.append(picker);
  const key=document.createElement('div');key.className='alliance-key';key.innerHTML='<span><i class="ally-blue"></i>U.S. allies / security partners</span><span><i class="ally-red"></i>China ally / selected partners</span><span><i class="occupied-key"></i>Russian-occupied Ukraine · Sep 29</span>';atlas.append(key);
@@ -12,7 +12,7 @@
  const routes=control('Shipping',true,b=>{showRoutes=!showRoutes;b.setAttribute('aria-pressed',String(showRoutes));revision++});
  const occupation=control('Occupation',true,b=>{showOccupation=!showOccupation;b.setAttribute('aria-pressed',String(showOccupation));revision++});
  const animation=control(paused?'Play':'Pause',!paused,b=>{motion.click();b.textContent=paused?'Play':'Pause';b.setAttribute('aria-pressed',String(!paused))});
- const layerNote=document.createElement('a');layerNote.href='/atlas-sources/';layerNote.className='atlas-data-note';layerNote.textContent='Historical shipping corridors · not live traffic';controls.append(layerNote);atlas.append(controls);
+ const layerNote=document.createElement('a');layerNote.href='./atlas-sources/';layerNote.className='atlas-data-note';layerNote.textContent='Historical shipping corridors · not live traffic';controls.append(layerNote);atlas.append(controls);
  document.querySelector('.atlas-bottom>span').textContent='HOVER TO READ · DRAG TO ROTATE';
  let pinned=false,start=null,lastHit='';
  const labels={nato:'NATO member',treaty:'U.S. treaty ally',rio:'Rio Treaty participant',uspartner:'U.S. security partner · not a treaty guarantee',partner:'China partner',special:'Special status',territory:'Territory / security framework',taiwan:'Taiwan / Republic of China'};
