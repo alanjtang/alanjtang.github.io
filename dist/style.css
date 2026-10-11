@@ -164,3 +164,31 @@ section>*,.entries article,.personal-grid article,.nav-links a,.text-link,.conta
 @media print{.article-photo{max-width:600px;break-inside:avoid}.article-photo figcaption{color:#333}}
 
 .article-body h2{font:400 clamp(26px,3.5vw,36px)/1.25 var(--serif);letter-spacing:-.02em;color:#eef0f4;margin:48px 0 24px}
+
+/* Compact publication index; full article photography retains its own layout. */
+.publications-page .publication-main{padding-top:140px}
+.publications-page .publication-main>h1{font-size:clamp(44px,6vw,72px)}
+.publications-page .publication-space{margin-top:22px}
+.publications-page .publication-card{max-width:none;display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:start;padding:26px 0}
+.publications-page .publication-photo{margin:0}
+.publications-page .publication-photo img{aspect-ratio:3/2;object-fit:cover}
+.publications-page .publication-photo figcaption{font-size:10px;line-height:1.5;margin-top:7px}
+.publication-summary{min-width:0}
+.publication-summary .eyebrow{font-size:10px;margin-bottom:9px}
+.publications-page .publication-card h2{font-size:clamp(24px,2.7vw,32px);line-height:1.17;margin:0 0 10px}
+.publication-summary>p{font-size:16px;line-height:1.6;margin:0 0 12px;max-width:760px}
+.publication-meta{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;margin-bottom:10px}
+.publication-meta .publication-byline,.publication-meta .publication-date{font:12px/1.6 var(--mono);letter-spacing:0;margin:0}
+.publication-summary>.text-link{font-size:12px}
+@media(max-width:700px){
+ .publications-page .publication-main{padding-top:116px}
+ .publications-page .publication-card{grid-template-columns:130px minmax(0,1fr);gap:18px;padding:22px 0}
+ .publications-page .publication-card h2{font-size:24px}
+ .publication-summary>p{font-size:15px}
+}
+@media(max-width:460px){
+ .publications-page .publication-card{grid-template-columns:96px minmax(0,1fr);gap:14px}
+ .publications-page .publication-card h2{font-size:21px}
+ .publication-summary .eyebrow{font-size:9px;letter-spacing:.06em}
+ .publications-page .publication-photo figcaption{font-size:9px}
+}
