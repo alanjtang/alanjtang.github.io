@@ -48,16 +48,26 @@ function coloredRoutes(){
  // Match the atlas's existing alignment groups, including nearby allied coasts.
  const blueGroups=new Set(['nato','treaty','rio','uspartner','territory','taiwan']);
  const blue=[[-98.5,39],...allianceFeatures.filter(f=>blueGroups.has(f.properties.group)).map(f=>d3.geoCentroid(f))];
- const red=[[104,35],[45,57],[132,43],[121.5,31.2],[120.4,36.1],[113.3,23.1],[110.3,20.0],...allianceFeatures.filter(f=>f.properties.group==='partner').map(f=>d3.geoCentroid(f))];
+ // Regional and coastal anchors keep large red-aligned countries from losing
+ // their coastal routes to a closer blue-country centroid.
+ const red=[[104,35],[45,57],[132,43],[33,69],[158.6,53],
+  [121.5,31.2],[120.4,36.1],[121,28],[119.3,26.1],[118.1,24.5],[113.3,23.1],[110.3,20],
+  [125.4,39.5],[129.5,41],[67,24.8],[62.3,25.1],[56.3,27.2],[50.8,28.9],[103.5,10.6],...allianceFeatures.filter(f=>f.properties.group==='partner').map(f=>d3.geoCentroid(f))];
  const bins=Array.from({length:16},(_,i)=>({type:'Feature',properties:{mix:i/15},geometry:{type:'MultiLineString',coordinates:[]}}));
  for(const feature of shippingFeatures){
   const lines=feature.geometry.type==='MultiLineString'?feature.geometry.coordinates:[feature.geometry.coordinates];
   for(const line of lines)for(let i=1;i<line.length;i++){
-   const a=line[i-1],b=line[i],mid=d3.geoInterpolate(a,b)(.5);
-   const db=Math.min(...blue.map(p=>d3.geoDistance(mid,p))),dr=Math.min(...red.map(p=>d3.geoDistance(mid,p)));
-   const blueWeight=Math.pow(dr,2),redWeight=Math.pow(db,2);
-   const mix=redWeight/(blueWeight+redWeight||1);
-   bins[Math.round(mix*15)].geometry.coordinates.push([a,b]);
+   const start=line[i-1],end=line[i],interpolate=d3.geoInterpolate(start,end);
+   // Short cached segments let the Taiwan Strait and other narrow corridors
+   // transition with geography rather than assigning one color to a long leg.
+   const steps=Math.max(1,Math.ceil(d3.geoDistance(start,end)/(.5*Math.PI/180)));
+   for(let j=0;j<steps;j++){
+    const a=interpolate(j/steps),b=interpolate((j+1)/steps),mid=interpolate((j+.5)/steps);
+    const db=Math.min(...blue.map(p=>d3.geoDistance(mid,p))),dr=Math.min(...red.map(p=>d3.geoDistance(mid,p)));
+    const blueWeight=Math.pow(dr,2),redWeight=Math.pow(db,2);
+    const mix=redWeight/(blueWeight+redWeight||1);
+    bins[Math.round(mix*15)].geometry.coordinates.push([a,b]);
+   }
   }
  }
  const features=bins.filter(f=>f.geometry.coordinates.length);
