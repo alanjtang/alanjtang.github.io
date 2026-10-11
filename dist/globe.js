@@ -81,9 +81,9 @@ function drawTradeRoutes(routes){
   const color=`rgb(${Math.round(60+190*mix)},${Math.round(175-100*mix)},${Math.round(255-140*mix)})`;
   const stream=.88+.12*Math.cos(routeTime*.0012-Math.abs(mix-.5)*Math.PI*4);
   ctx.strokeStyle=color;
-  ctx.globalAlpha=.08*stream;ctx.lineWidth=5;ctx.stroke(path);
-  ctx.globalAlpha=.20*stream;ctx.lineWidth=2.6;ctx.stroke(path);
-  ctx.globalAlpha=.78*stream;ctx.lineWidth=1;ctx.stroke(path);
+  ctx.globalAlpha=.15*stream;ctx.lineWidth=7;ctx.stroke(path);
+  ctx.globalAlpha=.32*stream;ctx.lineWidth=3.4;ctx.stroke(path);
+  ctx.globalAlpha=.94*stream;ctx.lineWidth=1.2;ctx.stroke(path);
  }
  ctx.restore();
 }
