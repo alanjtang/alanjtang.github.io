@@ -212,3 +212,6 @@ section>*,.entries article,.personal-grid article,.nav-links a,.text-link,.conta
 .atlas:not(.atlas-details-collapsed) .relationship-picker{top:52px}
 .atlas:not(.atlas-details-collapsed) .alliance-key{top:94px}
 .atlas:not(.atlas-details-collapsed) .atlas-layer-controls{top:168px}
+
+/* Slightly smaller globe on wide desktop layouts. */
+@media(min-width:1101px) and (min-aspect-ratio:4/3){.atlas-viewport{inset:4%;width:92%;height:92%}}
