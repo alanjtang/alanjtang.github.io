@@ -162,3 +162,5 @@ section>*,.entries article,.personal-grid article,.nav-links a,.text-link,.conta
 .article-photo figcaption span{display:block;margin-top:4px}
 @media(max-width:700px){.publication-photo{margin-bottom:24px}.article-photo{margin-bottom:32px}.publication-photo figcaption,.article-photo figcaption{font-size:10px}}
 @media print{.article-photo{max-width:600px;break-inside:avoid}.article-photo figcaption{color:#333}}
+
+.article-body h2{font:400 clamp(26px,3.5vw,36px)/1.25 var(--serif);letter-spacing:-.02em;color:#eef0f4;margin:48px 0 24px}
