@@ -41,6 +41,26 @@ function featureVisible(feature){
  const dot=Math.sin(cap.lat)*Math.sin(tilt)+Math.cos(cap.lat)*Math.cos(tilt)*Math.cos(cap.lon-angle);
  return dot>=-Math.sin(cap.radius)-1e-9;
 }
+// Color is attached to geographic route segments, so it rotates with the globe.
+let routeColorCache=null;
+function coloredRoutes(){
+ if(routeColorCache?.shipping===shippingFeatures&&routeColorCache.allies===allianceFeatures)return routeColorCache.features;
+ const blue=[-98.5,39],red=[[104,35],...allianceFeatures.filter(f=>f.properties.group==='partner').map(f=>d3.geoCentroid(f))];
+ const bins=Array.from({length:16},(_,i)=>({type:'Feature',properties:{mix:i/15},geometry:{type:'MultiLineString',coordinates:[]}}));
+ for(const feature of shippingFeatures){
+  const lines=feature.geometry.type==='MultiLineString'?feature.geometry.coordinates:[feature.geometry.coordinates];
+  for(const line of lines)for(let i=1;i<line.length;i++){
+   const a=line[i-1],b=line[i],mid=d3.geoInterpolate(a,b)(.5);
+   const db=d3.geoDistance(mid,blue),dr=Math.min(...red.map(p=>d3.geoDistance(mid,p)));
+   const blueWeight=Math.pow(dr,2),redWeight=Math.pow(db,2);
+   const mix=redWeight/(blueWeight+redWeight||1);
+   bins[Math.round(mix*15)].geometry.coordinates.push([a,b]);
+  }
+ }
+ const features=bins.filter(f=>f.geometry.coordinates.length);
+ routeColorCache={shipping:shippingFeatures,allies:allianceFeatures,features};return features;
+}
+
 let geometryCache=null,oceanCache=null;
 function projectedGeometry(){
  const detail=highlights.length?highlights:lowHighlights;
@@ -48,33 +68,23 @@ function projectedGeometry(){
  if(geometryCache?.key===key&&geometryCache.allies===allianceFeatures&&geometryCache.detail===detail&&geometryCache.taiwan===taiwanFeature&&geometryCache.occupation===occupationFeatures&&geometryCache.shipping===shippingFeatures)return geometryCache;
  const projection=d3.geoOrthographic().translate([width/2,height/2]).scale(r).rotate([-angle*180/Math.PI,-tilt*180/Math.PI,0]).clipAngle(90),pathMaker=d3.geoPath(projection);
  const paths=features=>{const result=[];for(const feature of features){if(!featureVisible(feature))continue;const parts=visibleParts(feature);if(!parts.length)continue;const path=new Path2D();pathMaker.context(path);for(const part of parts)pathMaker(part);result.push({feature,path});}return result;};
- geometryCache={key,allies:allianceFeatures,detail,taiwan:taiwanFeature,occupation:occupationFeatures,shipping:shippingFeatures,countries:paths([...allianceFeatures.filter(f=>!['840','158'].includes(f.id)),...detail,...(taiwanFeature?[taiwanFeature]:[])]),occupied:paths(occupationFeatures),routes:paths(shippingFeatures)};
+ geometryCache={key,allies:allianceFeatures,detail,taiwan:taiwanFeature,occupation:occupationFeatures,shipping:shippingFeatures,countries:paths([...allianceFeatures.filter(f=>!['840','158'].includes(f.id)),...detail,...(taiwanFeature?[taiwanFeature]:[])]),occupied:paths(occupationFeatures),routes:paths(coloredRoutes())};
  return geometryCache;
 }
 // A separate animation clock lets the routes flow while country details are open.
 let routeTime=0;
-let routeNetworkCache=null;
 function drawTradeRoutes(routes){
- if(!routes.length)return;
- if(routeNetworkCache?.routes!==routes){
-  const network=new Path2D();
-  for(const {path} of routes)network.addPath(path);
-  routeNetworkCache={routes,network};
- }
- const network=routeNetworkCache.network;
- const phase=routeTime*.00032;
- const color=(offset,alpha=1)=>{
-  const mix=(Math.sin(phase+offset)+1)/2;
-  return `rgba(${Math.round(60+190*mix)},${Math.round(175-100*mix)},${Math.round(255-140*mix)},${alpha})`;
- };
  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.shadowBlur=0;
- const glow=ctx.createLinearGradient(width/2-r,height/2-r*.35,width/2+r,height/2+r*.35);
- for(let i=0;i<=4;i++)glow.addColorStop(i/4,color(i*Math.PI/2));
- // One shared moving gradient keeps the glow and filament in the same color.
- ctx.strokeStyle=glow;
- ctx.globalAlpha=.08;ctx.lineWidth=5;ctx.stroke(network);
- ctx.globalAlpha=.20;ctx.lineWidth=2.6;ctx.stroke(network);
- ctx.globalAlpha=.78;ctx.lineWidth=1;ctx.stroke(network);
+ for(const {feature,path} of routes){
+  const mix=feature.properties.mix;
+  // Stable U.S. blue / China-and-partner red; only the light intensity flows.
+  const color=`rgb(${Math.round(60+190*mix)},${Math.round(175-100*mix)},${Math.round(255-140*mix)})`;
+  const stream=.88+.12*Math.cos(routeTime*.0012-Math.abs(mix-.5)*Math.PI*4);
+  ctx.strokeStyle=color;
+  ctx.globalAlpha=.08*stream;ctx.lineWidth=5;ctx.stroke(path);
+  ctx.globalAlpha=.20*stream;ctx.lineWidth=2.6;ctx.stroke(path);
+  ctx.globalAlpha=.78*stream;ctx.lineWidth=1;ctx.stroke(path);
+ }
  ctx.restore();
 }
 function draw(now=0){requestAnimationFrame(draw);if(document.hidden||!globeVisible){lastFrame=0;return;}const elapsed=now-lastFrame;if(lastFrame&&elapsed<(drag?15:32))return;const dt=lastFrame?Math.min(elapsed,100)/16.667:1;lastFrame=now;r=baseRadius;if(!paused&&!drag&&!hoverCountry&&!readingCard){angle+=.0009*dt;target=angle}if(!paused&&showRoutes)routeTime+=dt*16.667;const view=[angle,tilt,width,height,revision,showRoutes?routeTime:0].join('|');if(view===lastView)return;lastView=view;ctx.clearRect(0,0,width,height);const cx=width/2,cy=height/2;
