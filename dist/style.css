@@ -192,3 +192,23 @@ section>*,.entries article,.personal-grid article,.nav-links a,.text-link,.conta
  .publication-summary .eyebrow{font-size:9px;letter-spacing:.06em}
  .publications-page .publication-photo figcaption{font-size:9px}
 }
+
+/* Globe annotations are opt-in; keep motion control available in the quiet view. */
+.atlas.atlas-details-collapsed .atlas-top,
+.atlas.atlas-details-collapsed .globe-caption,
+.atlas.atlas-details-collapsed .country-legend,
+.atlas.atlas-details-collapsed .atlas-bottom,
+.atlas.atlas-details-collapsed>nav,
+.atlas.atlas-details-collapsed .relationship-picker,
+.atlas.atlas-details-collapsed .alliance-key,
+.atlas.atlas-details-collapsed .atlas-layer-controls{display:none!important}
+.atlas-quick-controls{position:absolute;top:0;right:4%;z-index:4;display:flex;gap:7px;align-items:center}
+.atlas-quick-controls button{border:1px solid #ffffff36;border-radius:4px;background:#17212bdb;color:#e8edf1;padding:9px 12px;font:11px/1.3 var(--mono);cursor:pointer}
+.atlas-quick-controls button:hover,.atlas-quick-controls button[aria-expanded=true]{border-color:#86b8ee;color:#fff}
+.atlas:not(.atlas-details-collapsed) .atlas-top{padding-right:185px}
+.atlas:not(.atlas-details-collapsed) .atlas-top>span:last-child{display:none}
+@media(max-width:520px){.atlas-quick-controls{right:6%}.atlas-quick-controls button{min-height:40px;padding:9px 10px}.atlas:not(.atlas-details-collapsed) .atlas-top{padding-right:170px}}
+
+.atlas:not(.atlas-details-collapsed) .relationship-picker{top:52px}
+.atlas:not(.atlas-details-collapsed) .alliance-key{top:94px}
+.atlas:not(.atlas-details-collapsed) .atlas-layer-controls{top:168px}

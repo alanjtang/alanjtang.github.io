@@ -14,6 +14,22 @@
  const animation=control(paused?'Play':'Pause',!paused,b=>{motion.click();b.textContent=paused?'Play':'Pause';b.setAttribute('aria-pressed',String(!paused))});
  const layerNote=document.createElement('a');layerNote.href='./atlas-sources/';layerNote.className='atlas-data-note';layerNote.textContent='Historical shipping corridors · not live traffic';controls.append(layerNote);atlas.append(controls);
  document.querySelector('.atlas-bottom>span').textContent='HOVER TO READ · DRAG TO ROTATE';
+ // Keep the first view quiet; the reader can opt into map annotations.
+ let detailsVisible=false;
+ const toolbar=document.createElement('div');toolbar.className='atlas-quick-controls';
+ const detailsToggle=document.createElement('button');detailsToggle.type='button';
+ detailsToggle.textContent='Show details';detailsToggle.setAttribute('aria-expanded','false');
+ const detailNodes=[...atlas.querySelectorAll('.atlas-top,.globe-caption,.country-legend,.atlas-bottom,nav,.relationship-picker,.alliance-key,.atlas-layer-controls')];
+ detailNodes.forEach((node,i)=>{if(!node.id)node.id='atlas-detail-'+i;});
+ detailsToggle.setAttribute('aria-controls',detailNodes.map(node=>node.id).join(' '));
+ toolbar.append(detailsToggle,animation);atlas.append(toolbar);
+ detailsToggle.onclick=()=>{
+  detailsVisible=!detailsVisible;
+  atlas.classList.toggle('atlas-details-collapsed',!detailsVisible);
+  detailsToggle.textContent=detailsVisible?'Hide details':'Show details';
+  detailsToggle.setAttribute('aria-expanded',String(detailsVisible));
+  if(!detailsVisible)dismiss();
+ };
  let pinned=false,start=null,lastHit='';
  const labels={nato:'NATO member',treaty:'U.S. treaty ally',rio:'Rio Treaty participant',uspartner:'U.S. security partner · not a treaty guarantee',partner:'China partner',special:'Special status',territory:'Territory / security framework',taiwan:'Taiwan / Republic of China'};
  function dismiss(){panel.hidden=true;hoverCountry=null;readingCard=false;pinned=false;picker.value='';lastHit='';revision++}
@@ -25,7 +41,7 @@
  window.addEventListener('relationships-error',()=>{picker.options[0].text='Relationships unavailable';picker.disabled=true;key.hidden=true});window.addEventListener('shipping-error',()=>{routes.disabled=true;routes.textContent='Shipping unavailable'});window.addEventListener('occupation-error',()=>{occupation.disabled=true;occupation.textContent='Occupation unavailable';key.querySelector('.occupied-key').parentElement.hidden=true});
  picker.onchange=()=>{const f=allianceFeatures.find(f=>f.id===picker.value);if(!f){dismiss();return}const [lon,lat]=d3.geoCentroid(f);angle=target=lon*Math.PI/180;tilt=lat*Math.PI/180;pinned=true;show(f.id)};
  function hit(e){const b=canvas.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;if(Math.hypot(x-width/2,y-height/2)>baseRadius)return null;ctx.save();ctx.setTransform(1,0,0,1,0,0);let id=null,occupied=null;for(let i=countryHitPaths.length-1;i>=0;i--){const entry=countryHitPaths[i];if(ctx.isPointInPath(entry.path,x,y)){id=entry.feature.id;break}}if(id==='804')for(const entry of occupationHitPaths){if(ctx.isPointInPath(entry.path,x,y)){occupied=entry.feature;break}}ctx.restore();return id!=='840'&&allianceFeatures.some(f=>f.id===id)?{id,occupied}:null}
- canvas.addEventListener('pointermove',e=>{if(drag||pinned||e.pointerType==='touch')return;const h=hit(e),signature=h?h.id+Boolean(h.occupied):'';if(h){if(signature!==lastHit)show(h.id,h.occupied)}else if(hoverCountry){hoverCountry=null;revision++}lastHit=signature;});
- canvas.addEventListener('pointerleave',()=>{lastHit='';if(!pinned){hoverCountry=null;revision++}});canvas.addEventListener('pointerdown',e=>{start=[e.clientX,e.clientY]});canvas.addEventListener('pointerup',e=>{if(start&&Math.hypot(e.clientX-start[0],e.clientY-start[1])<8){const h=hit(e);if(h){pinned=true;show(h.id,h.occupied)}else dismiss()}start=null});
+ canvas.addEventListener('pointermove',e=>{if(!detailsVisible||drag||pinned||e.pointerType==='touch')return;const h=hit(e),signature=h?h.id+Boolean(h.occupied):'';if(h){if(signature!==lastHit)show(h.id,h.occupied)}else if(hoverCountry){hoverCountry=null;revision++}lastHit=signature;});
+ canvas.addEventListener('pointerleave',()=>{lastHit='';if(!pinned){hoverCountry=null;revision++}});canvas.addEventListener('pointerdown',e=>{start=[e.clientX,e.clientY]});canvas.addEventListener('pointerup',e=>{if(!detailsVisible){start=null;return}if(start&&Math.hypot(e.clientX-start[0],e.clientY-start[1])<8){const h=hit(e);if(h){pinned=true;show(h.id,h.occupied)}else dismiss()}start=null});
  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',e=>{if(e.matches&&!paused){motion.click();animation.textContent='Play';animation.setAttribute('aria-pressed','false')}});
 })();
