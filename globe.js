@@ -45,13 +45,16 @@ function featureVisible(feature){
 let routeColorCache=null;
 function coloredRoutes(){
  if(routeColorCache?.shipping===shippingFeatures&&routeColorCache.allies===allianceFeatures)return routeColorCache.features;
- const blue=[-98.5,39],red=[[104,35],...allianceFeatures.filter(f=>f.properties.group==='partner').map(f=>d3.geoCentroid(f))];
+ // Match the atlas's existing alignment groups, including nearby allied coasts.
+ const blueGroups=new Set(['nato','treaty','rio','uspartner','territory','taiwan']);
+ const blue=[[-98.5,39],...allianceFeatures.filter(f=>blueGroups.has(f.properties.group)).map(f=>d3.geoCentroid(f))];
+ const red=[[104,35],[45,57],[132,43],[121.5,31.2],[120.4,36.1],[113.3,23.1],[110.3,20.0],...allianceFeatures.filter(f=>f.properties.group==='partner').map(f=>d3.geoCentroid(f))];
  const bins=Array.from({length:16},(_,i)=>({type:'Feature',properties:{mix:i/15},geometry:{type:'MultiLineString',coordinates:[]}}));
  for(const feature of shippingFeatures){
   const lines=feature.geometry.type==='MultiLineString'?feature.geometry.coordinates:[feature.geometry.coordinates];
   for(const line of lines)for(let i=1;i<line.length;i++){
    const a=line[i-1],b=line[i],mid=d3.geoInterpolate(a,b)(.5);
-   const db=d3.geoDistance(mid,blue),dr=Math.min(...red.map(p=>d3.geoDistance(mid,p)));
+   const db=Math.min(...blue.map(p=>d3.geoDistance(mid,p))),dr=Math.min(...red.map(p=>d3.geoDistance(mid,p)));
    const blueWeight=Math.pow(dr,2),redWeight=Math.pow(db,2);
    const mix=redWeight/(blueWeight+redWeight||1);
    bins[Math.round(mix*15)].geometry.coordinates.push([a,b]);
